@@ -16,34 +16,28 @@ knitr::opts_chunk$set(echo = TRUE)
 if (!require("ggplot2")) install.packages("ggplot2")
 if (!require("dplyr")) install.packages("dplyr")
 if (!require("utils")) install.packages("utils")
+if (!require("RColorBrewer")) install.packages("RColorBrewer")
 if (!require("colourpicker")) install.packages("colourpicker")
-if (!require("colorspace")) install.packages("colorspace")
-if (!require("boxplotdbl")) install.packages("boxplotdbl")
-library("ggplot2")
-library("dplyr")
-library("utils")
-library("colourpicker")
-library("colorspace")
-library("boxplotdbl")
+if (!require("colorspace")) install.packages("ccolorspace")
+
 ```
 
 
 ```{r}
 #Carga de Datos desde el directorio actual del archivo MarkDown
+test <- read.csv('./titanic-test.csv',stringsAsFactors = FALSE)
 train <- read.csv('./titanic-train.csv', stringsAsFactors = FALSE)
-test <- read.csv('./titanic-test.csv', stringsAsFactors = FALSE)
-#titanic <- read.csv('./titanic-train.csv', stringsAsFactors = FALSE)
 
 ```
 
 ```{r}
-# Obtenemos filas del dataset Titanic, dónde previamente unimos los dataset test y train
+# Unimos los dos conjuntos de datos en uno solo, llamandolo Titanic
 titanic <- bind_rows(train,test)
-filas=dim(titanic)[1]
-filas
+filas=dim(train)[1]
+View(titanic)
 #Vista de la estructura básica de Titanic
 str(titanic)
-#summary(titanic)
+summary(titanic)
 ## R Markdown
 ```
 # 3.1. ¿Los datos contienen ceros o elementos vacíos? ¿Cómo gestionarías cada uno de estos casos?
@@ -63,53 +57,50 @@ titanic$Age[is.na(titanic$Age)] <- mean(titanic$Age)
 cat("Como otro ejemplo de gestión, en la columna Age, a las filas vacías se le asigna el promedio de la edades de los pasajeros registrados en el dataset")
 View(titanic)
 ```
-3.2. Identificación y tratamiento de valores extremos que no estén vacíos, para los atributos numéricos: Age, y Fare. No se hará tal análisis al atribito PClass porque es o deber ser categórico. No se hará tal análisis al atribito Survived porque es o deber ser categórico <0=No sobrevive, 1=Sobrevive>
+3.2. Identificación y tratamiento de valores extremos que no estén vacíos, para los atributos numéricos: Age, SibSp, Parch y Fare. No se hará tal análisis al atribito PClass porque es o deber ser categórico. No se hará tal análisis al atribito Survived porque es o deber ser categórico <0=No sobrevive, 1=Sobrevive>
 
 ```{r}
 cat("\nMáximo de edad - Age: ", max(titanic$Age, na.rm=TRUE))
 cat("\nMínimo de edad - Age: ", min(titanic$Age, na.rm=TRUE))
 cat("\nPromedio de edad - Age: ", mean(titanic$Age, na.rm=TRUE))
 cat("\nDesviación estándar de edad - Age: ", sd(titanic$Age, na.rm=TRUE))
-cat("\nOutliers: ",boxplot.stats(titanic$Age)$out)
-```
-*****
-Los valores extremos o outliers son aquellos que parecen no ser proporcionados si los comparamos con el resto de los datos. Para identificarlos, hacemos uso de dos vías: (1) representar un diagrama de caja por cada variable y ver qué valores distan mucho del rango intercuartílico (la caja) o (2) utilizar la función boxplots.stats() de R, la cual se emplea a continuación; sin embargo, si revisamos los datos para edades, comprobamos 66, 71, 70.5, 71, 80, 70, 74 que edades que perfectamente pueden darse, es por ello que el manejo de estos valores extremos consistirá en simplemente dejarlos como actualmente están recogidos.
-*****
-```{r}
+
+cat("\nMáximo número de hermanos / cónyuges a bordo: ", max(titanic$SibSp, na.rm=TRUE))
+cat("\nMínimo número de hermanos / cónyuges a bordo: ", min(titanic$SibSp, na.rm=TRUE))
+cat("\nPromedio número de hermanos / cónyuges a bordo: ", mean(titanic$SibSp, na.rm=TRUE))
+cat("\nDesviación estándar número de hermanos / cónyuges a bordo: ", sd(titanic$SibSp, na.rm=TRUE))
+
+cat("\nMáximo Número de padres / hijos a bordo: ", max(titanic$Parch, na.rm=TRUE))
+cat("\nMínimo Número de padres / hijos a bordo: ", min(titanic$Parch, na.rm=TRUE))
+cat("\nPromedio Número de padres / hijos a bordo: ", mean(titanic$Parch, na.rm=TRUE))
+cat("\nDesviación estándar Número de padres / hijos a bordo: ", sd(titanic$Parch, na.rm=TRUE))
+
 cat("\nMáximo de tarifa: ", max(titanic$Fare, na.rm=TRUE))
 cat("\nMínimo de tarifa: ", min(titanic$Fare, na.rm=TRUE))
 cat("\nPromedio de tarifa", mean(titanic$Fare, na.rm=TRUE))
 cat("\nDesviación estándar de tarifa: ", sd(titanic$Fare, na.rm=TRUE))
-cat("\nOutliers: ",boxplot.stats(titanic$Fare)$out)
+
+
+
+
+
+
 ```
-
-
-
 4. Análisis de los datos.
 Nos proponemos analizar las relaciones entre las diferentes variables del
-juego de datos, pero previamente discretizamos si es posibles
-# Discretizamos las variables con pocas clases
-cols<-c("Survived","Pclass","Sex","Embarked","SibSp", "Parch")
-for (i in cols){
-  titanic[,i] <- as.factor(titanic[,i])
-}
+juego de datos.
 ```{r}
-#Visualizamos la relación entre las variables Sex y Survived:
-ggplot(data=titanic[1:filas,],aes(x=Sex,fill=Survived))+geom_bar()
-#Visualizamos la relación entre las variables Pclass y Survived:
-ggplot(data=titanic[1:filas,],aes(x=Pclass,fill=Survived))+geom_bar()
-ggplot(data=titanic[1:filas,],aes(x=Sex,fill=Pclass))+geom_bar()
-ggplot(data=titanic[1:filas,],aes(x=Survived,fill=Sex))+geom_bar()
+#transformamos a factor la columna Survived y lo almacenamos en otra columna
+titanic$Sobrevivientes = as.factor(titanic$Survived)
 
-
+# Visualizamos la relación entre las variables "sex" y "survival":
+ggplot(data=titanic[1:filas,],aes(x=Sex,fill=Sobrevivientes))+geom_bar()
 ```
 ```{r}
 # Otro punto de vista. Survival como función de Embarked:
 ggplot(data =
-titanic[1:filas,],aes(x=Embarked,fill=Survived))+geom_bar(position="fill")+ylab("Frecuencia")
+titanic[1:filas,],aes(x=Embarked,fill=Sobrevivientes))+geom_bar(position="fill")+ylab("Frecuencia")
 ```
-
-
 Obtenemos una matriz de porcentajes de frecuencia.
 Vemos, por ejemplo, que la probabilidad de sobrevivir si se embarcó en
 “C” es de un 55%.
@@ -121,52 +112,25 @@ for (i in 1:dim(t)[1]){
 t
 
 ```
-
-
 Vemos ahora como en un mismo gráfico de frecuencias podemos trabajar
 con 3 variables: Embarked, Survived y Pclass.
 ```{r}
 # Now, let's devide the graph of Embarked by Pclass:
 ggplot(data =
-titanic[1:filas,],aes(x=Embarked,fill=Survived))+geom_bar(position="fill")+facet_wrap(~Pclass)
+titanic[1:filas,],aes(x=Embarked,fill=Sobrevivientes))+geom_bar(position="fill")+facet_wrap(~Pclass)
 ```
-
-4.1. Selección de los grupos de datos que se quieren analizar/comparar (planificación
-de los análisis a aplicar).
 Comparemos ahora dos gráficos de frecuencias. Survived-Sibsp y
 Survived-Parch
 ```{r}
 # Survivial como función de SibSp y Parch
-ggplot(data = titanic[1:filas,],aes(x=SibSp,fill=Survived))+geom_bar()
+ggplot(data = titanic[1:filas,],aes(x=SibSp,fill=Sobrevivientes))+geom_bar()
 ```
 ```{r}
-ggplot(data = titanic[1:filas,],aes(x=Parch,fill=Survived))+geom_bar()
+ggplot(data = titanic[1:filas,],aes(x=Parch,fill=Sobrevivientes))+geom_bar()
 
 ```
-
-
 Vemos como la forma de estos dos gráficos es similar. Esto nos puede indicar la
 presencia de correlaciones altas.
-4.2 Comprobación de la normalidad y homogeneidad de la varianza
-```{r}
-for (i in 1:dim.data.frame(Embarked)) {
-if (i == 1) cat("Variables que no siguen una distribución normal:\n")
-if (is.integer(Embarked[,i]) | is.numeric(Embarked[,i])) {
-p_val = ad.test(Embarked[,i])$p.value
-if (p_val < alpha) {
-cat(col.names[i])
-# Format output
-if (i < ncol(Embarked) - 1) cat(", ")
-if (i %% 3 == 0) cat("\n")
-}
- }
-  }
-```
-
-
-
-
-
 
 
 
