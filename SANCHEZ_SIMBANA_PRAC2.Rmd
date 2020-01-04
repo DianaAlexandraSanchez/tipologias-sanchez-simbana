@@ -1,0 +1,182 @@
+---
+title: "SANCHEZ_SIMBANA_PRAC2"
+author: "SANCHEZ_SIMBANA"
+date: "28/12/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Carga y/o instalación de Paquetes si son necesarios
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("utils")) install.packages("utils")
+if (!require("colourpicker")) install.packages("colourpicker")
+if (!require("colorspace")) install.packages("colorspace")
+if (!require("boxplotdbl")) install.packages("boxplotdbl")
+library("ggplot2")
+library("dplyr")
+library("utils")
+library("colourpicker")
+library("colorspace")
+library("boxplotdbl")
+```
+
+
+```{r}
+#Carga de Datos desde el directorio actual del archivo MarkDown
+train <- read.csv('./titanic-train.csv', stringsAsFactors = FALSE)
+test <- read.csv('./titanic-test.csv', stringsAsFactors = FALSE)
+#titanic <- read.csv('./titanic-train.csv', stringsAsFactors = FALSE)
+
+```
+
+```{r}
+# Obtenemos filas del dataset Titanic, dónde previamente unimos los dataset test y train
+titanic <- bind_rows(train,test)
+filas=dim(titanic)[1]
+filas
+#Vista de la estructura básica de Titanic
+str(titanic)
+#summary(titanic)
+## R Markdown
+```
+# 3.1. ¿Los datos contienen ceros o elementos vacíos? ¿Cómo gestionarías cada uno de estos casos?
+```{r}
+# Estadísticas de valores vacíos
+colSums(is.na(titanic))
+cat("Por ejemplo en la columna Survived existen 418 vacios, en Age 263 vacios, en Fare 1 vacio ")
+colSums(titanic=="")
+cat("Por ejemplo en la columna Cabin existen 1014 espacio en <blanco>, no obstante en Survived y fare, la condición no aplica porque son datos numéricos y no de texto")
+    
+# Tomamos valor "C" para los valores vacíos de la variable "Embarked"
+titanic$Embarked[titanic$Embarked==""]="C" 
+cat("Como ejemplo de gestión, la columna Embarked tiene tres valores posibles C = Cherbourg; Q = Queenstown; S = Southampton. La historia del titanic cuenta que el último puerto dónde se embarcaron pasajeros Cherbourg, por tanto hemos asumido que si algún pasajero no tiene registro de puerto de embarque, lo marcaremos o llenaremos como <C>")
+# Tomamos la media para valores vacíos de la variable "Age"
+View(titanic)
+titanic$Age[is.na(titanic$Age)] <- mean(titanic$Age)
+cat("Como otro ejemplo de gestión, en la columna Age, a las filas vacías se le asigna el promedio de la edades de los pasajeros registrados en el dataset")
+View(titanic)
+```
+3.2. Identificación y tratamiento de valores extremos que no estén vacíos, para los atributos numéricos: Age, y Fare. No se hará tal análisis al atribito PClass porque es o deber ser categórico. No se hará tal análisis al atribito Survived porque es o deber ser categórico <0=No sobrevive, 1=Sobrevive>
+
+```{r}
+cat("\nMáximo de edad - Age: ", max(titanic$Age, na.rm=TRUE))
+cat("\nMínimo de edad - Age: ", min(titanic$Age, na.rm=TRUE))
+cat("\nPromedio de edad - Age: ", mean(titanic$Age, na.rm=TRUE))
+cat("\nDesviación estándar de edad - Age: ", sd(titanic$Age, na.rm=TRUE))
+cat("\nOutliers: ",boxplot.stats(titanic$Age)$out)
+```
+*****
+Los valores extremos o outliers son aquellos que parecen no ser proporcionados si los comparamos con el resto de los datos. Para identificarlos, hacemos uso de dos vías: (1) representar un diagrama de caja por cada variable y ver qué valores distan mucho del rango intercuartílico (la caja) o (2) utilizar la función boxplots.stats() de R, la cual se emplea a continuación; sin embargo, si revisamos los datos para edades, comprobamos 66, 71, 70.5, 71, 80, 70, 74 que edades que perfectamente pueden darse, es por ello que el manejo de estos valores extremos consistirá en simplemente dejarlos como actualmente están recogidos.
+*****
+```{r}
+cat("\nMáximo de tarifa: ", max(titanic$Fare, na.rm=TRUE))
+cat("\nMínimo de tarifa: ", min(titanic$Fare, na.rm=TRUE))
+cat("\nPromedio de tarifa", mean(titanic$Fare, na.rm=TRUE))
+cat("\nDesviación estándar de tarifa: ", sd(titanic$Fare, na.rm=TRUE))
+cat("\nOutliers: ",boxplot.stats(titanic$Fare)$out)
+```
+
+
+
+4. Análisis de los datos.
+Nos proponemos analizar las relaciones entre las diferentes variables del
+juego de datos, pero previamente discretizamos si es posibles
+# Discretizamos las variables con pocas clases
+cols<-c("Survived","Pclass","Sex","Embarked","SibSp", "Parch")
+for (i in cols){
+  titanic[,i] <- as.factor(titanic[,i])
+}
+```{r}
+#Visualizamos la relación entre las variables Sex y Survived:
+ggplot(data=titanic[1:filas,],aes(x=Sex,fill=Survived))+geom_bar()
+#Visualizamos la relación entre las variables Pclass y Survived:
+ggplot(data=titanic[1:filas,],aes(x=Pclass,fill=Survived))+geom_bar()
+ggplot(data=titanic[1:filas,],aes(x=Sex,fill=Pclass))+geom_bar()
+ggplot(data=titanic[1:filas,],aes(x=Survived,fill=Sex))+geom_bar()
+
+
+```
+```{r}
+# Otro punto de vista. Survival como función de Embarked:
+ggplot(data =
+titanic[1:filas,],aes(x=Embarked,fill=Survived))+geom_bar(position="fill")+ylab("Frecuencia")
+```
+
+
+Obtenemos una matriz de porcentajes de frecuencia.
+Vemos, por ejemplo, que la probabilidad de sobrevivir si se embarcó en
+“C” es de un 55%.
+```{r}
+t<-table(titanic[1:filas,]$Embarked,titanic[1:filas,]$Survived)
+for (i in 1:dim(t)[1]){
+ t[i,]<-t[i,]/sum(t[i,])*100
+}
+t
+
+```
+
+
+Vemos ahora como en un mismo gráfico de frecuencias podemos trabajar
+con 3 variables: Embarked, Survived y Pclass.
+```{r}
+# Now, let's devide the graph of Embarked by Pclass:
+ggplot(data =
+titanic[1:filas,],aes(x=Embarked,fill=Survived))+geom_bar(position="fill")+facet_wrap(~Pclass)
+```
+
+4.1. Selección de los grupos de datos que se quieren analizar/comparar (planificación
+de los análisis a aplicar).
+Comparemos ahora dos gráficos de frecuencias. Survived-Sibsp y
+Survived-Parch
+```{r}
+# Survivial como función de SibSp y Parch
+ggplot(data = titanic[1:filas,],aes(x=SibSp,fill=Survived))+geom_bar()
+```
+```{r}
+ggplot(data = titanic[1:filas,],aes(x=Parch,fill=Survived))+geom_bar()
+
+```
+
+
+Vemos como la forma de estos dos gráficos es similar. Esto nos puede indicar la
+presencia de correlaciones altas.
+4.2 Comprobación de la normalidad y homogeneidad de la varianza
+```{r}
+for (i in 1:dim.data.frame(Embarked)) {
+if (i == 1) cat("Variables que no siguen una distribución normal:\n")
+if (is.integer(Embarked[,i]) | is.numeric(Embarked[,i])) {
+p_val = ad.test(Embarked[,i])$p.value
+if (p_val < alpha) {
+cat(col.names[i])
+# Format output
+if (i < ncol(Embarked) - 1) cat(", ")
+if (i %% 3 == 0) cat("\n")
+}
+ }
+  }
+```
+
+
+
+
+
+
+
+
+
+```
+
+```
+## R Markdown
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
