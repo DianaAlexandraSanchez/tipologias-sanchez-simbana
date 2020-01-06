@@ -56,6 +56,16 @@ View(titanic)
 titanic$Age[is.na(titanic$Age)] <- mean(titanic$Age)
 cat("Como otro ejemplo de gestión, en la columna Age, a las filas vacías se le asigna el promedio de la edades de los pasajeros registrados en el dataset")
 View(titanic)
+
+
+# Construimos un atributo nuevo: family size, incluida la persona de ese registro.
+titanic$FamilySize <- titanic$SibSp + titanic$Parch +1;
+
+titanic$Survived <- as.factor(ifelse(titanic$Survived == 1, "Yes", "No"))
+titanic$Pclass <- as.factor(titanic$Pclass)
+
+#transformamos a factor la columna Survived y lo almacenamos en otra columna
+titanic$Sobrevivientes = as.factor(titanic$Survived)
 ```
 3.2. Identificación y tratamiento de valores extremos que no estén vacíos, para los atributos numéricos: Age, SibSp, Parch y Fare. No se hará tal análisis al atribito PClass porque es o deber ser categórico. No se hará tal análisis al atribito Survived porque es o deber ser categórico <0=No sobrevive, 1=Sobrevive>
 
@@ -89,10 +99,19 @@ cat("\nDesviación estándar de tarifa: ", sd(titanic$Fare, na.rm=TRUE))
 4. Análisis de los datos.
 Nos proponemos analizar las relaciones entre las diferentes variables del
 juego de datos.
-```{r}
-#transformamos a factor la columna Survived y lo almacenamos en otra columna
-titanic$Sobrevivientes = as.factor(titanic$Survived)
 
+```{r}
+
+boxplot(titanic$Age, main = "Edad de los pasajeros", yLab = "Age")
+```
+
+
+```{r}
+boxplot(titanic$Fare, main = "Tarifa de los pasajeros", yLab = "Fare")
+
+```
+
+```{r}
 # Visualizamos la relación entre las variables "sex" y "survival":
 ggplot(data=titanic[1:filas,],aes(x=Sex,fill=Sobrevivientes))+geom_bar()
 ```
@@ -129,17 +148,16 @@ ggplot(data = titanic[1:filas,],aes(x=SibSp,fill=Sobrevivientes))+geom_bar()
 ggplot(data = titanic[1:filas,],aes(x=Parch,fill=Sobrevivientes))+geom_bar()
 
 ```
+
 Vemos como la forma de estos dos gráficos es similar. Esto nos puede indicar la
 presencia de correlaciones altas.
+```{r}
 
 
-
+ggplot(data=titanic,aes(x=FamilySize,fill=Survived))+geom_histogram(binwidth=1,position="fill")+ylab("Frecuencia")
 
 ```
-
 ```
-## R Markdown
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
