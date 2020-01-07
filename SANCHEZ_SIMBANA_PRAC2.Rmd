@@ -1,0 +1,469 @@
+---
+title: 'SANCHEZ_SIMBANA_PRAC2'
+author: "Autor: Diana"
+date: '`r format(Sys.Date(),"%e de %B, %Y")`'
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+****
+# Detalles de la actividad
+****
+
+El presente documento muestra un caso práctico orientado a identificar, limpiar, integrar, preparar, validar y analizar los datos dentro de un proyecto analítico en el cual se utiliza herramientas de código abierto para la consecución de los objetivos.
+
+****
+## Descripción
+****
+
+Para la realización de la práctica, se han elegido los datos de la competencia “Titanic ML” la cual originalmente busca la realización de un modelo capaz de predecir los pasajeros que sobrevivieron al naufragio del 15 de abril de 1912. En esta actividad se realizará la limpieza de los datos para corregir valores erróneos que pudieren encontrarse; la validación de los mismos y el análisis descriptivo para proveer información de valor en relación a las probabilidades de supervivencia de los pasajeros del Titanic.
+
+****
+## Objetivos
+****
+
+Los objetivos de esta práctica son:
+
+* Aprender a aplicar los conocimientos adquiridos y la capacidad de resolución de problemas en entornos nuevos o poco conocidos dentro de contextos más amplios o multidisciplinares.
+* Saber identificar los datos relevantes y los tratamientos necesarios (integración, limpieza y validación) para llevar a cabo un proyecto analítico.
+* Aprender a analizar los datos adecuadamente para abordar la información contenida en los datos.
+* Identificar la mejor representación de los resultados para aportar conclusiones sobre el problema planteado en el proceso analítico.
+* Actuar con los principios éticos y legales relacionados con la manipulación de datos en función del ámbito de aplicación.
+* Desarrollar las habilidades de aprendizaje que les permitan continuar estudiando de un modo que tendrá que ser en gran medida autodirigido o autónomo.
+* Desarrollar la capacidad de búsqueda, gestión y uso de información y recursos en el ámbito de la ciencia de datos.
+
+****
+## Competencias
+****
+
+En esta práctica se desarrollan las siguientes competencias:
+
+* Capacidad de analizar un problema en el nivel de abstracción adecuado a cada situación y aplicar las habilidades y conocimientos adquiridos para abordarlo y resolverlo.
+*Capacidad para aplicar las técnicas específicas de tratamiento de datos (integración, transformación, limpieza y validación) para su posterior análisis.
+
+****
+# Resolución
+****
+
+****
+## Descripción del dataset
+****
+
+El dataset contiene dos archivos referentes al naufragio del Titanic, train.csv (891 registros) test.csv (418 registros) y correspondientes a la competencia “Titanic ML ” disponible en el enlace https://www.kaggle.com/c/titanic.
+
+Los archivos de datos se encuentran constituidos de la siguiente manera:
+
+* **PassengerId:** Es el identificador del pasajero.
+* **Survived:** Indica si el pasajero sobrevivió o no. Este campo solo se encuentra en el fichero train.csv debido a que este se utilizará como archivo de entrenamiento para predecir la supervivencia de cada uno de los pasajeros del archivo test.csv. Cero (0)
+es igual a “No sobrevive”. Uno (1) es igual a “Sobrevive”.
+* **Pclass:** Es el tipo de ticket que adquirió el pasajero. 1 es Upper, 2 es Middle y 3 es Lower.
+* **Name:** Es el nombre del pasajero.
+* **Sex:** Es el sexo del pasajero.
+* **Age:** Es la edad del pasajero expresada en años.
+* **SibSp:** Es el número de hermanos y/o esposas(os) a bordo, por pasajero.
+* **Parch:** Es el número de padres y/o hijos a bordo, por pasajero.
+* **Ticket:** Es el número de ticket del pasajero.
+* **Fare:** Es la tarifa pagada por el pasajero.
+* **Cabin:** Es el número de camarote del pasajero.
+* **Embarked:** Es el Puerto de embarque del pasajero. C = Cherbourg, Q = Queenstown, S = Southampton.
+
+****
+## Importancia y objetivos de los análisis
+****
+
+La importancia de este conjunto de datos radica en encontrar la relación entre las diferentes variables las cuales permiten que aumenten o disminuyan la probabilidad de los pasajeros de sobrevivir al naufragio. Para esto es importante realizar la creación y cambios que fueren necesarios en las variables utilizando métodos como la normalización, discretización y transformaciones necesarias para posteriormente llevar a cabo el análisis de los datos. Debido a que en total los datos de los dos archivos suman 1309 registros y el objetivo del análisis es el contar con la probabilidad individual de cada pasajero para sobrevivir, no se utilizará el método de reducción de la cantidad.
+
+La realización de este análisis permitirá que se realicen otros modelos predictivos aplicados a otros naufragios con la finalidad que puedan establecerse nuevas normativas y planes prevención en temas de navegación fluvial en el mundo. No obstante, también sirve de motivación para que aplicando técnicas similares, se realicen modelos enfocados en la navegación terrestre, aérea y ferroviaria.
+
+****
+## Limpieza de los datos
+****
+
+Previa a la ejecución de la limpieza de los datos, se requiere realizar un análisis visual que permita determinar la ruta a seguir para obtener la mejor calidad de datos posibles. Para esto se han realizado las siguientes observaciones:
+
+Campo      | Tipo de variable | Observaciones  
+---------- | ---------------- | ----------------------------------------
+PassengerId  |  Descriptiva   | Es un número secuencial de cada pasajero. En el archivo train.csv inicia en 1 y finaliza en 891. En el archivo test.csv inicia en 892 y finaliza en 1309.
+Survived | Categórica  | No existen valores en blanco.
+Pclass | Categórica | No existen valores en blanco.
+Name | Cualitativa | Contiene las abreviaturas Mr. (hombres adultos), Mrs. (mujeres adultas casadas), Miss. (mujeres solteras), Master. (hombres jóvenes); datos que pueden ser de utilidad para determinar la edad en caso de no encontrarse en los archivos iniciales.
+Sex | Categórica | No existen valores en blanco.
+Age | Cuantitativa | Existen las siguientes cantidades: Valores menores a uno train.csv (7), test.csv (5), Valores con decimales xx,5 train.csv (18), test.csv (15), Campos en blanco train.csv (177), test.csv (86).
+SibSp | Cuantitativa | No existen valores en blanco.
+Parch |Cuantitativa | No existen valores en blanco.
+Ticket | Categórica | No existen valores en blanco.
+Fare | Cuantitativa | No existen valores en blanco.
+Cabin | Categórica | Existen valores en blanco: test.csv (327), train.csv (687)
+Embarked | Categórica | Existen valores en blanco: train.csv (2)
+
+****
+### Selección de los datos de interés
+****
+
+Los atributos presentes en el análisis, contienen información de cada pasajero del Titanic en los cuales de pueden encontrar características físicas, emocionales y restricciones que pudieron afectar a cada pasajero al momento del naufragio y por ende afectaron en su supervivencia. Por ejemplo en el caso de tener niños, seguramente los padres, trataron de salvarlos primero incluso poniendo en riesgo su propia supervivencia.
+
+De las columnas provistas en los conjuntos de datos, se puede obviar: PassengerId, Ticket, Fare, Cabin y Embarked en vista que son variables que no tienen relación con la probabilidad de supervivencia.
+
+```{r}
+
+if(!require(dplyr)){
+    install.packages('dplyr', repos='http://cran.us.r-project.org')
+    library(dplyr)
+}
+
+#Carga de Datos desde el directorio actual del archivo MarkDown
+test <- read.csv('./titanic-test.csv', header = TRUE)
+train <- read.csv('./titanic-train.csv', header = TRUE)
+
+# Eliminar las columnas que no utilizaremos para el analisis
+train <- train[, -1]
+train <- train[, -(8:11)]
+
+test <- test[, -1]
+test <- test[, -(7:10)]
+
+```
+
+****
+### Ceros y elementos vacíos
+****
+
+```{r}
+
+#Vista de la estructura básica de Titanic
+str(train)
+summary(train)
+
+# Estadisticas de valores vacios
+colSums(is.na(train))
+colSums(train=="")
+
+# Estadisticas de valores vacios
+colSums(is.na(test))
+colSums(test=="")
+
+```
+```{r}
+#TRAIN
+# Obtenemos la media de las edades de acuerdo al nombre de la persona Mr, Mrs, Miss, Master
+meanmr <- round(mean(train$Age[regexpr("Mr.", train$Name) > 0 & !is.na(train$Age)]), 0)
+meanmrs <- round(mean(train$Age[regexpr("Mrs.", train$Name) > 0 & !is.na(train$Age)]), 0)
+meanmiss <- round(mean(train$Age[regexpr("Miss.", train$Name) > 0 & !is.na(train$Age)]), 0)
+meanmaster <- round(mean(train$Age[regexpr("Master.", train$Name) > 0 & !is.na(train$Age)]), 0)
+
+# Tomamos la media para valores vacíos de la variable "Age" y los reemplazamos por la media
+train$Age[regexpr("Mr.", train$Name) > 0 & is.na(train$Age)] <- meanmr
+train$Age[regexpr("Mrs.", train$Name) > 0 & is.na(train$Age)] <- meanmrs
+train$Age[regexpr("Miss", train$Name) > 0 & is.na(train$Age)] <- meanmiss
+train$Age[regexpr("Master", train$Name) > 0 & is.na(train$Age)] <- meanmaster
+train$Age[is.na(train$Age)] <- meanmr
+
+#TEST
+# Obtenemos la media de las edades de acuerdo al nombre de la persona Mr, Mrs, Miss, Master
+meanmr <- round(mean(test$Age[regexpr("Mr.", test$Name) > 0 & !is.na(test$Age)]), 0)
+meanmrs <- round(mean(test$Age[regexpr("Mrs.", test$Name) > 0 & !is.na(test$Age)]), 0)
+meanmiss <- round(mean(test$Age[regexpr("Miss.", test$Name) > 0 & !is.na(test$Age)]), 0)
+meanmaster <- round(mean(test$Age[regexpr("Master.", test$Name) > 0 & !is.na(test$Age)]), 0)
+
+# Tomamos la media para valores vacíos de la variable "Age" y los reemplazamos por la media
+test$Age[regexpr("Mr.", test$Name) > 0 & is.na(test$Age)] <- meanmr
+test$Age[regexpr("Mrs.", test$Name) > 0 & is.na(test$Age)] <- meanmrs
+test$Age[regexpr("Miss", test$Name) > 0 & is.na(test$Age)] <- meanmiss
+test$Age[regexpr("Master", test$Name) > 0 & is.na(test$Age)] <- meanmaster
+test$Age[is.na(test$Age)] <- meanmr
+
+```
+
+* Como otro ejemplo de gestión, en la columna Age, a las filas vacías se le asigna el promedio de la edades de los pasajeros registrados en el dataset
+
+****
+### Valores extremos
+****
+
+Los valores extremos o outliers son aquellos que parecen no ser congruentes sin los comparamos con el resto de los datos. Para identificarlos, podemos hacer uso de dos vías: (1) representar un diagrama de caja por cada variable y ver qué valores distan mucho del rango intercuartílico (la caja) o (2) utilizar la función boxplots.stats() de R, la cual se emplea a continuación.
+
+Así, se mostrarán sólo los valores atípicos para aquellas variables que los contienen:
+
+```{r}
+
+boxplot.stats(train$Survived)$out
+boxplot.stats(train$Pclass)$out
+boxplot.stats(train$Age)$out
+boxplot.stats(train$SibSp)$out
+boxplot.stats(train$Parch)$out
+
+```
+
+Observamos que tanto como para la variable Survived y Pclass los valores extremos son normales ya que tenemos solo 2 estados, sobrevive o no y 3 clases baja, media y alta.
+
+Para las variables de Age, SibSp y Parch observamos mas variedad de datos ya que existen muchas personas de diferentes edades en el barco ademas de el numero de hermanos, esposasm padres e hijos a bordo es muy distinto entre cada pasajero por lo tanto a continuacion tenemos los valores maximo y minimos de cada una de estas variables:
+
+```{r}
+
+# Edad Máxima y Mínima
+min(train$Age)
+max(train$Age)
+
+# SibSp Máxima y Mínima
+min(train$SibSp)
+max(train$SibSp)
+
+# Parch Máxima y Mínima
+min(train$Parch)
+max(train$Parch)
+
+```
+
+****
+### Exportación de los datos preprocesados
+****
+
+Una vez que hemos acometido sobre el conjunto de datos inicial los procedimientos de integración, validación y limpieza anteriores, procedemos a guardar estos en un nuevo fichero denominado train_data_clean.csv:
+
+```{r}
+
+# Exportación de los datos limpios en .csv
+write.csv(train, "train_data_clean.csv")
+
+```
+
+****
+## Análisis de los datos
+****
+
+****
+### Selección de los grupos de datos a analizar
+****
+
+A continuación, se seleccionan los grupos dentro de nuestro conjunto de datos que pueden resultar interesantes para analizar y/o comparar. No obstante, como se verá en el apartado consistente en la realización de pruebas estadísticas, no todos se utilizarán.
+
+```{r}
+
+# Agrupación por alta, media y baja clase
+train.upperclass <- train[train$Pclass == 1,]
+train.middleclass <- train[train$Pclass == 2,]
+train.lowerclass <- train[train$Pclass == 3,]
+
+# Agrupación por sexo
+train.male <- train[train$Sex == "male",]
+train.female <- train[train$Sex == "female",]
+
+```
+
+****
+### Comprobación de la normalidad y homogeneidad de la varianza
+****
+
+Para la comprobación de que los valores que toman nuestras variables cuantitativas provienen de una población distribuida normalmente, utilizaremos la prueba de normalidad de AndersonDarling.
+
+Así, se comprueba que para que cada prueba se obtiene un p-valor superior al nivel de significación prefijado α = 0, 05. Si esto se cumple, entonces se considera que variable en cuestión sigue una distribución normal.
+
+```{r}
+
+if(!require(nortest)){
+    install.packages('nortest', repos='http://cran.us.r-project.org')
+    library(nortest)
+}
+
+alpha = 0.05
+col.names = colnames(train)
+for (i in 1:ncol(train)) {
+  if (i == 1) cat("Variables que no siguen una distribución normal:\n")
+    if (is.integer(train[,i]) | is.numeric(train[,i])) {
+      p_val = ad.test(train[,i])$p.value
+    if (p_val < alpha) {
+      cat(col.names[i])
+      # Format output
+      if (i < ncol(train) - 1) cat(", ")
+      if (i %% 3 == 0) cat("\n")
+    }
+  }
+}
+
+#Para comprobarlo graficamente utilizamos histograma para Survived
+hist(train$Survived)
+
+#Para comprobarlo graficamente utilizamos histograma para Pclass
+hist(train$Pclass)
+
+#Para comprobarlo graficamente utilizamos histograma para Age
+hist(train$Age)
+
+#Para comprobarlo graficamente utilizamos histograma para SibSp
+hist(train$SibSp)
+
+#Para comprobarlo graficamente utilizamos histograma para Parch
+hist(train$Parch)
+
+```
+
+Seguidamente, pasamos a estudiar la homogeneidad de varianzas mediante la aplicación de un test de Fligner-Killeen. En este caso, estudiaremos esta homogeneidad en cuanto a los grupos conformados por las clases de pasajeros que se encontraban en el barco. En el siguiente test, la hipótesis nula consiste en que ambas varianzas son iguales.
+
+```{r}
+
+fligner.test(Survived ~ Pclass, data = train)
+
+```
+
+Los valores de p inferiores a 0,05 sugieren que las variaciones son significativamente diferentes y se ha violado el supuesto de homogeneidad de la varianza.
+
+****
+## Pruebas estadísticas
+****
+
+****
+### ¿Qué variables cuantitativas influyen más en la probabilidad de supervivencia al naufragio?
+****
+
+En primer lugar, procedemos a realizar un análisis de correlación entre las distintas variables para determinar cuáles de ellas ejercen una mayor influencia sobre la supervivencia.
+Para ello, se utilizará el coeficiente de correlación de Spearman, puesto que hemos visto que tenemos datos que no siguen una distribución normal.
+
+```{r}
+
+corr_matrix <- matrix(nc = 2, nr = 0)
+colnames(corr_matrix) <- c("estimate", "p-value")
+
+# Calcular el coeficiente de correlación para cada variable cuantitativa
+# con respecto al campo "precio"
+for (i in 2:ncol(train)) {
+  if (is.integer(train[,i]) | is.numeric(train[,i])) {
+    spearman_test = cor.test(train[,i],
+                            train[,length(train)],
+                            method = "spearman")
+    
+    corr_coef = spearman_test$estimate
+    p_val = spearman_test$p.value
+    
+    # Add row to matrix
+    pair = matrix(ncol = 2, nrow = 1)
+    pair[1][1] = corr_coef
+    pair[2][1] = p_val
+    corr_matrix <- rbind(corr_matrix, pair)
+    rownames(corr_matrix)[nrow(corr_matrix)] <- colnames(train)[i]
+  }
+}
+
+print(corr_matrix)
+
+```
+
+Así, identificamos cuáles son las variables más correlacionadas con la supervivencia en función de su proximidad con los valores -1 y +1. Teniendo esto en cuenta, queda patente cómo la variable más relevante en la fijación de la supervivencia es Es el número de padres y/o hijos a bordo (Parch).
+
+Nota. Para cada coeficiente de correlación se muestra también su p-valor asociado, puesto que éste puede dar información acerca del peso estadístico de la correlación obtenida.
+
+****
+### ¿Es mayor la probabilidad de supervivencia para las mujeres y niños?
+****
+
+La segunda prueba estadística que se aplicará consistirá en un contraste de hipótesis sobre dos muestras para determinar si la probabilidad de sobrevivir es mayor para las mujeres y niños. Para ello, tendremos dos muestras: la primera de ellas se corresponderá a los pasajeros mujeres y ninos, la segunda, con aquellos
+pasajeros de sexo masculino.
+
+```{r}
+
+train.female.sobrev <- train[train$Sex == "female" & train$Survived == 1,]
+train.male.sobrev <- train[train$Sex == "male" & train$Survived == 1,]
+
+#Calculos mujeres
+nrow(train.female.sobrev)
+
+#Calculos hombres
+nrow(train.male.sobrev)
+
+t.test(train.female.sobrev$Age, train.male.sobrev$Age, alternative = "greater")
+
+```
+
+****
+### ¿Cuáles son las variables dependientes en el análisis?
+****
+
+Para nuestro caso la variable dependiente es Survived, ya que necesitamos conocer de que manera afectan las demas variables para determinar las probabilidades de sobrevivir.
+
+****
+### Modelo de regresión lineal
+****
+
+```{r}
+
+#Estimacion del modelo de acuerdo a la clase y al sexo
+Model.1.1<- lm(Survived~Pclass+Sex, data=train)
+summary(Model.1.1)
+
+#Estimacion del modelo de acuerdo a la edad y al sexo
+Model.1.2<- lm(Survived~Sex+Age, data=train)
+summary(Model.1.2)
+
+#Estimacion del modelo de acuerdo a la clase, Es el número de hermanos y/o esposas(os) a bordo y Es el número de padres y/o hijos a bordo
+Model.1.3<- lm(Survived~SibSp+Parch+Pclass, data=train)
+summary(Model.1.3)
+
+```
+
+Para los anteriores modelos de regresión lineal múltiple obtenidos, podemos utilizar el coeficiente de determinación para medir la bondad de los ajustes y quedarnos con aquel modelo que mejor coeficiente presente.
+
+```{r}
+
+# Tabla con los coeficientes de determinación de cada modelo
+tabla.coeficientes <- matrix(c(1, summary(Model.1.1)$r.squared,
+2, summary(Model.1.2)$r.squared,
+3, summary(Model.1.3)$r.squared),
+ncol = 2, byrow = TRUE)
+colnames(tabla.coeficientes) <- c("Modelo", "R^2")
+tabla.coeficientes
+
+```
+
+En este caso, tenemos que el primer modelo es el más conveniente dado que tiene un mayor coeficiente de determinación. Ahora, empleando este modelo, podemos proceder a realizar de superviviencia como la siguiente:
+
+```{r}
+
+# Predecir la capacida de supervivencia del dataset de pruebas agregando una nueva columna, mientras mas se acerquen los valores predecido a 1 mayor posibilidad de sobrevivir.
+test$Survived <- predict(Model.1.1, test)
+
+#Predecir si un pasajero hombre de 28 anos que compra un ticket de clase media podria sobrevivir
+newdata1 <- data.frame(
+  Pclass = 2,
+  Sex = "male",
+  Age = 28
+)
+
+predict(Model.1.1, newdata1)
+
+#Predecir si un pasajero mujer de 30 anos que compra un ticket de clase alta podria sobrevivir
+newdata2 <- data.frame(
+  Pclass = 1,
+  Sex = "female",
+  Age = 30
+)
+
+predict(Model.1.1, newdata2)
+
+#Predecir si un pasajero mujer de 10 anos que compra un ticket de clase alta podria sobrevivir
+newdata3 <- data.frame(
+  Pclass = 1,
+  Sex = "female",
+  Age = 10
+)
+
+predict(Model.1.1, newdata3)
+
+```
+
+****
+## Conclusiones
+****
+
+Durante el analisis de los datos, hemos podido observar que quienes tienen mayor probabilidad de sobrevivir son las mujeres y niños de clase alta. En el estudio de regresion lineal las variables de mayor influencia son el sexo, la clase de ticket adquirido y en menor grado si el pasajero tiene hijos a bordo, por tal motivo se pudo determinar que influye mucho las clase social, es decir el tipo de ticket que se haya adquirido en este caso de primera clase son quienes tuvieron mayor posibilidad de sobrevivir entre estos mujeres y niños. En los modelos tambien se pudo observar que los pasajeros de sexo masculino tuvieron menos psoibilidad de sobrevivir con un coefciente negativo y aquellos con hijos a bordo tuvieron una mayor posibilidad de sobrevivir.
